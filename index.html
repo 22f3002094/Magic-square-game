@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Square Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .grid {
+            display: inline-grid;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .cell {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
+            text-align: center;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+        .cell:focus {
+            outline: none;
+            box-shadow: 0 0 5px #007bff;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #message {
+            margin-top: 20px;
+            font-weight: bold;
+            color: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Magic Square Game</h1>
+        <button onclick="createGrid(3)">3x3 Grid</button>
+        <button onclick="createGrid(4)">4x4 Grid</button>
+        <div id="grid" class="grid"></div>
+        <button id="checkButton" onclick="checkMagicSquare()" style="display: none;">Check Solution</button>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        let currentSize = 0;
+        let magicSum = 0;
+
+        function createGrid(size) {
+            currentSize = size;
+            magicSum = size % 2 === 1 ? size * (size * size + 1) / 2 : 4 * size * (size * size + 1) / 4;
+            
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            grid.style.gridTemplateColumns = `repeat(${size}, 60px)`;
+
+            for (let i = 0; i < size * size; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'cell';
+                input.maxLength = 2;
+                input.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^\d]/g, '');
+                    let num = parseInt(this.value);
+                    if (num > size * size) {
+                        this.value = size * size;
+                    } else if (num === 0) {
+                        this.value = '';
+                    }
+                });
+                grid.appendChild(input);
+            }
+
+            document.getElementById('message').textContent = '';
+            document.getElementById('checkButton').style.display = 'inline-block';
+        }
+
+        function checkMagicSquare() {
+            const cells = document.querySelectorAll('.cell');
+            const values = Array.from(cells).map(cell => parseInt(cell.value) || 0);
+
+            if (values.some(v => v === 0)) {
+                document.getElementById('message').textContent = 'Please fill all cells with numbers.';
+                return;
+            }
+
+            const rows = Array(currentSize).fill().map((_, i) => 
+                values.slice(i * currentSize, (i + 1) * currentSize));
+            const cols = Array(currentSize).fill().map((_, i) => 
+                values.filter((_, j) => j % currentSize === i));
+            const diag1 = values.filter((_, i) => i % (currentSize + 1) === 0);
+            const diag2 = values.filter((_, i) => i % (currentSize - 1) === 0 && i !== 0 && i !== values.length - 1);
+
+            const allSums = [...rows, ...cols, diag1, diag2].map(arr => arr.reduce((a, b) => a + b, 0));
+            const isValid = allSums.every(sum => sum === magicSum) && new Set(values).size === values.length;
+
+            if (isValid) {
+                document.getElementById('message').textContent = 'Congratulations! You\'ve created a valid Magic Square!';
+                document.getElementById('checkButton').style.display = 'none';
+            } else {
+                document.getElementById('message').textContent = 'Not quite. Would you like to try again?';
+                document.getElementById('checkButton').textContent = 'Try Again';
+                document.getElementById('checkButton').onclick = resetGrid;
+            }
+        }
+
+        function resetGrid() {
+            createGrid(currentSize);
+            document.getElementById('checkButton').textContent = 'Check Solution';
+            document.getElementById('checkButton').onclick = checkMagicSquare;
+        }
+    </script>
+</body>
+</html>
