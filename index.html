@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Square Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .magic-square {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #fff;
+            border: 2px solid #000;
+            font-size: 2rem;
+            text-align: center;
+            line-height: 100px;
+            cursor: pointer;
+        }
+        .cell input {
+            width: 100%;
+            height: 100%;
+            font-size: 2rem;
+            text-align: center;
+            border: none;
+            outline: none;
+        }
+        .message {
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="magic-square" id="magicSquare">
+            <!-- Cells for the magic square -->
+            <div class="cell"><input type="text" oninput="validateInput(this)" /></div>
+            <div class="cell"><input type="text" oninput="validateInput(this)" /></div>
+            <div class="cell"><input type="text" oninput="validateInput(this)" /></div>
+            <div class="cell"><input type="text" oninput="validateInput(this)" /></div>
+            <div class="cell"><input type="text" oninput="validateInput(this)" /></div>
+            <div class="cell"><input type="text" oninput="validateInput(this)" /></div>
+            <div class="cell"><input type="text" oninput="validateInput(this)" /></div>
+            <div class="cell"><input type="text" oninput="validateInput(this)" /></div>
+            <div class="cell"><input type="text" oninput="validateInput(this)" /></div>
+        </div>
+        <button onclick="checkMagicSquare()">Check Magic Square</button>
+        <button onclick="resetGame()">Reset</button>
+        <div class="message" id="message"></div>
+    </div>
+
+    <script>
+        // Function to ensure only integers are allowed in the text box
+        function validateInput(input) {
+            // Remove non-digit characters except minus (-)
+            input.value = input.value.replace(/[^\d-]/g, '');
+        }
+
+        function checkMagicSquare() {
+            const inputs = document.querySelectorAll('input');
+            const values = Array.from(inputs).map(input => parseInt(input.value) || 0);
+            const messageDiv = document.getElementById('message');
+
+            if (values.includes(0)) {
+                messageDiv.textContent = "Please fill in all cells.";
+                messageDiv.style.color = 'red';
+                return;
+            }
+
+            // Check if the rows, columns, and diagonals add up to the same number
+            const sum = values[0] + values[1] + values[2];
+            const row1 = values[0] + values[1] + values[2];
+            const row2 = values[3] + values[4] + values[5];
+            const row3 = values[6] + values[7] + values[8];
+
+            const col1 = values[0] + values[3] + values[6];
+            const col2 = values[1] + values[4] + values[7];
+            const col3 = values[2] + values[5] + values[8];
+
+            const diag1 = values[0] + values[4] + values[8];
+            const diag2 = values[2] + values[4] + values[6];
+
+            if (row1 === sum && row2 === sum && row3 === sum &&
+                col1 === sum && col2 === sum && col3 === sum &&
+                diag1 === sum && diag2 === sum) {
+                messageDiv.textContent = "Congratulations! It's a magic square!";
+                messageDiv.style.color = 'green';
+            } else {
+                messageDiv.textContent = "Not a magic square. Try again!";
+                messageDiv.style.color = 'red';
+            }
+        }
+
+        // Function to reset the game
+        function resetGame() {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.value = '';
+            });
+            document.getElementById('message').textContent = '';
+        }
+    </script>
+</body>
+</html>
