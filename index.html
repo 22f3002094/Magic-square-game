@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Square Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 90vw;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+        .grid {
+            display: grid;
+            grid-gap: 10px;
+            margin: 2rem auto;
+            justify-content: center;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            text-align: center;
+            border: 2px solid #4a90e2;
+            border-radius: 5px;
+            background-color: #fff;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+        .cell:focus {
+            outline: none;
+            border-color: #2c3e50;
+            box-shadow: 0 0 5px rgba(74, 144, 226, 0.5);
+        }
+        .cell::-webkit-inner-spin-button, 
+        .cell::-webkit-outer-spin-button { 
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .cell {
+            -moz-appearance: textfield;
+        }
+        button, select {
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+            margin: 0 10px;
+        }
+        button:hover, select:hover {
+            background-color: #357abd;
+        }
+        #message {
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        #selection-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #game-screen {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Magic Square Game</h1>
+        <div id="selection-screen">
+            <select id="matrix-size">
+                <option value="3">3x3 Matrix</option>
+                <option value="4">4x4 Matrix</option>
+                <option value="5">5x5 Matrix</option>
+            </select>
+            <button onclick="startGame()">Start Game</button>
+        </div>
+        <div id="game-screen">
+            <div class="grid" id="grid"></div>
+            <button onclick="checkMagicSquare()">Check Magic Square</button>
+            <button onclick="resetGame()">Reset Game</button>
+        </div>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const message = document.getElementById('message');
+        const selectionScreen = document.getElementById('selection-screen');
+        const gameScreen = document.getElementById('game-screen');
+        let cells = [];
+        let matrixSize;
+
+        function startGame() {
+            matrixSize = parseInt(document.getElementById('matrix-size').value);
+            selectionScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            createGrid();
+        }
+
+        function createGrid() {
+            grid.innerHTML = '';
+            cells = [];
+            grid.style.gridTemplateColumns = `repeat(${matrixSize}, 60px)`;
+
+            for (let i = 0; i < matrixSize * matrixSize; i++) {
+                const cell = document.createElement('input');
+                cell.type = 'text';
+                cell.inputMode = 'numeric';
+                cell.pattern = '[0-9]*';
+                cell.className = 'cell';
+                cell.addEventListener('input', function(e) {
+                    this.value = this.value.replace(/[^0-9]/g, '');
+                    if (this.value.length > 2) {
+                        this.value = this.value.slice(0, 2);
+                    }
+                    const num = parseInt(this.value);
+                    if (num > matrixSize * matrixSize) {
+                        this.value = matrixSize * matrixSize + '';
+                    }
+                });
+                grid.appendChild(cell);
+                cells.push(cell);
+            }
+        }
+
+        function checkMagicSquare() {
+            const values = cells.map(cell => parseInt(cell.value) || 0);
+            const magicSum = (matrixSize * (matrixSize * matrixSize + 1)) / 2;
+
+            const isValid = checkRows() && checkColumns() && checkDiagonals();
+            const isUnique = new Set(values).size === matrixSize * matrixSize && 
+                             values.every(v => v >= 1 && v <= matrixSize * matrixSize);
+
+            if (isValid && isUnique) {
+                message.textContent = "Congratulations! You've created a valid magic square!";
+                message.style.color = "green";
+            } else {
+                message.textContent = "Not a valid magic square. Keep trying!";
+                message.style.color = "red";
+            }
+        }
+
+        function checkRows() {
+            for (let i = 0; i < matrixSize; i++) {
+                if (!checkLine(i * matrixSize, (i + 1) * matrixSize)) return false;
+            }
+            return true;
+        }
+
+        function checkColumns() {
+            for (let i = 0; i < matrixSize; i++) {
+                if (!checkLine(i, matrixSize * matrixSize, matrixSize)) return false;
+            }
+            return true;
+        }
+
+        function checkDiagonals() {
+            return checkLine(0, matrixSize * matrixSize, matrixSize + 1) &&
+                   checkLine(matrixSize - 1, matrixSize * (matrixSize - 1) + 1, matrixSize - 1);
+        }
+
+        function checkLine(start, end, step = 1) {
+            const sum = Array.from({length: (end - start) / step}, (_, i) => 
+                parseInt(cells[start + i * step].value) || 0
+            ).reduce((a, b) => a + b, 0);
+            return sum === (matrixSize * (matrixSize * matrixSize + 1)) / 2;
+        }
+
+        function resetGame() {
+            cells.forEach(cell => cell.value = '');
+            message.textContent = '';
+        }
+    </script>
+</body>
+</html>
